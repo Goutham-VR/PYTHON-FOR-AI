@@ -239,24 +239,20 @@ with open("data.txt", "r") as file:
 # ============================================================
 
 class MyContext:
-
     def __enter__(self):
         print("Entering")
 
     def __exit__(self, exc_type, exc_value, traceback):
         print("Exiting")
 
-
 with MyContext():
     print("Inside")
-
 
 # Output:
 #
 #     Entering
 #     Inside
 #     Exiting
-#
 #
 # Flow:
 #
@@ -474,7 +470,6 @@ class Database:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-
         print("Closing database connection")
 
     def query(self):
@@ -607,7 +602,6 @@ print(file.closed)
 
 from contextlib import contextmanager
 
-
 @contextmanager
 def my_context():
 
@@ -617,9 +611,7 @@ def my_context():
 
     print("Exiting")
 
-
 with my_context():
-
     print("Inside")
 
 
@@ -673,20 +665,13 @@ with message_context() as message:
 
 @contextmanager
 def my_resource():
-
     print("Resource acquired")
-
     try:
-
         yield
-
     finally:
-
         print("Resource cleaned up")
 
-
 with my_resource():
-
     print("Using resource")
 
 

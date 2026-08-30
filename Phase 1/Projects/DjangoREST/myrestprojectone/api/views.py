@@ -7,9 +7,23 @@ from api.models import Student
 from api.models import Computer
 
 #importing Serializers
-from api.serializers import StudentSerializer
+# ===================NORMAL SERIALIZERS====================
+from api.serializers import StudentSerializer 
+from api.serializers import DepartmentSerializer
+
+# ===================SERIALIZERS WITH FIELD RULE - BUILT-IN/CUSTOM/MULTIPLE====================
 from api.serializers import StudentSerializerWithFieldRule
+
+# ===================SERIALIZERS WITH CREATE/UPDATE METHOD AND FIELD RULE====================
 from api.serializers import StudentCreateUpdateserializerwithvalidation
+
+# ===================SERIALIZERS WITH METHOD FIELD====================
+from api.serializers import StudentSerializerMethodField
+
+# ===================NESTED SERIALIZERS====================
+from api.serializers import EmployeeNestedSerializer
+from api.serializers import EmployeeWritableNestedSerializer
+from api.serializers import EmployeeSerializer
 
 import asyncio
 # Create your views here.
@@ -250,3 +264,43 @@ def patchstudentcmv(request,id):
             'message':'Data Pathed',
             'data':serializer.data
         })
+
+@api_view(['POST'])
+def createstudentsmf(request):
+    serializer=StudentSerializerMethodField(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Data Inserted',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+#pending update for smf
+
+# Department Views 
+@api_view(['POST'])
+def createdepartment(request):
+    serializer=DepartmentSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Department Created',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# Employee Views
+# Uncomment each nested serializer to know each
+@api_view(['POST'])
+def createemployee(request):
+    serializer=EmployeeNestedSerializer(data=request.data)
+    serializer=EmployeeWritableNestedSerializer(data=request.data)
+    serializer=EmployeeSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Employee Created',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)

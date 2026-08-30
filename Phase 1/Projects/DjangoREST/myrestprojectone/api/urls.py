@@ -33,4 +33,14 @@ urlpatterns=[
     path('getstudentcmv/<int:id>/',views.getstudentcmv),
     path('putstudentcmv/<int:id>/',views.putstudentcmv),
     path('patchstudentcmv/<int:id>/',views.patchstudentcmv),
+
+    # CURD - Serializer with SerializerMethodField
+    path('createstudentsmf/',views.createstudentsmf),
+    # path('createstudentsmf/',views.createstudentsmf),
+    # path('createstudentsmf/',views.createstudentsmf),
+
+    # CURD - Nested Serializer Concept using Department and Employee model
+    path('createdepartment/',views.createdepartment),
+    path('createemployee/',views.createemployee),
+
 ]

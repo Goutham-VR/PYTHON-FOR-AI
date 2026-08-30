@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from api.models import Student
+from api.models import Department
+from api.models import Employee
 
 class StudentSerializer(serializers.ModelSerializer): #Create a serializer based on a Django model.
     class Meta:
@@ -133,8 +135,7 @@ class StudentCreateUpdateserializerwithvalidation(serializers.ModelSerializer):
         student=Student.objects.create(
             name=validated_data['name'],
             age=validated_data['age'],
-            course=validated_data['course']
-        )
+            course=validated_data['course'])
         return student
 
     # for update
@@ -160,21 +161,108 @@ class StudentCreateUpdateserializerwithvalidation(serializers.ModelSerializer):
 # What is SerializerMethodField?
 # It allows you to add a custom/calculated field to the API response without adding that field to your database model.
 # We can create it using: field_name = serializers.SerializerMethodField()
+# SerializerMethodField does not save anything to the database, Think of it as a display/calculation field.
 
 class StudentSerializerMethodField(serializers.ModelSerializer):
 
     # 1. Custom fields - New Concept(SerializerMethodField)
     student_status = serializers.SerializerMethodField()
 
+    # 2. DRF built-in field validation - Already Learned add if needed
+
     class Meta:
         model = Student
+        fields = 'id','name','age','course','student_status'
+
+    # 3. Add Field validation - Already Learned add if needed
+    # 4. Add Multiple-field validation - Already Learned add if needed
+    # 5. Create - Already Learned add if needed
+    # 6. Update - Already Learned add if needed
+
+    # 7. Output/calculated fields - New Concept(SerializerMethodField)
+    def get_student_status(self,obj):
+        if obj.age>=18:
+            return "Adult"
+        else:
+            return "Minor"
+
+# Nested Serializer Concept
+# Then why use Nested Serializer?
+# Nested Serializer is mainly useful when reading related data:
+class DepartmentSerializer(serializers.ModelSerializer):
+    # Add Validation and Method if needed
+    class Meta:
+        model = Department
         fields = '__all__'
 
-    # 2. Add Field validation like above eg if needed
-    # 3. Add Multiple-field validation
-    # 4. Create ----
-    # 5. Update ----
+# Nested Serializer - 3 Types
+# ============================================================
+# 1. Nested Serializer for GET / Output
+# ============================================================
+class EmployeeNestedSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
+    # read_only=True means this nested field is used for output.
+    # Example GET response:
+    #
+    # "department": {
+    #     "id": 1,
+    #     "name": "Computer"
+    # }
 
-    # 6. Output/calculated fields - New Concept(SerializerMethodField)
-    def get_student_status(self, obj):
-        ...
+    class Meta:
+        model = Employee
+        fields = '__all__'
+
+
+# ============================================================
+# 2. Writable Nested Serializer
+# ============================================================
+class EmployeeWritableNestedSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer()
+    # Writable nested data can be used for POST / PUT / PATCH.
+    # Custom create() / update() logic may be required.
+
+    class Meta:
+        model = Employee
+        fields = '__all__'
+
+    # Custom create()
+    # Creates a NEW Department and then creates the Employee.
+    def create(self, validated_data):
+        departmentdata = validated_data.pop('department')
+        department = Department.objects.create(**departmentdata)
+        employee = Employee.objects.create(department=department,**validated_data)
+        return employee
+
+    # Custom update()
+    # Needed when we also want to update the nested Department.
+    def update(self, instance, validated_data):
+        departmentdata = validated_data.pop('department',None)
+        instance.name = validated_data.get('name',instance.name)
+        instance.salary = validated_data.get('salary',instance.salary)
+        if departmentdata:
+            instance.department.name = departmentdata.get('name',instance.department.name)
+            instance.department.save()
+        instance.save()
+        return instance
+
+# ============================================================
+# 3. PrimaryKeyRelatedField
+# ============================================================
+class EmployeeSerializer(serializers.ModelSerializer):
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+    # Used when the Department already exists in the database.
+    # POST / PUT / PATCH:
+    # Send Department ID:
+    # "department": 1
+    # DRF converts the ID into the corresponding
+    # Department object during validation.
+    # The same serializer can normally be used for:
+    # POST, GET, PUT and PATCH.
+    # Custom create() is NOT needed.
+    # Custom update() is NOT needed.
+    # DRF's ModelSerializer handles them automatically.
+    class Meta:
+        model = Employee
+        fields = '__all__'
+

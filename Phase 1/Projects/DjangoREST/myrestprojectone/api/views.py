@@ -5,11 +5,16 @@ from rest_framework.decorators import api_view
 #importing models
 from api.models import Student
 from api.models import Computer
+from api.models import Employee
+from api.models import User
 
 #importing Serializers
 # ===================NORMAL SERIALIZERS====================
-from api.serializers import StudentSerializer 
+from api.serializers import StudentSerializerBasic
 from api.serializers import DepartmentSerializer
+
+# ===================NORMAL SERIALIZERS WITH FIELD RULE====================
+from api.serializers import StudentSerializer
 
 # ===================SERIALIZERS WITH FIELD RULE - BUILT-IN/CUSTOM/MULTIPLE====================
 from api.serializers import StudentSerializerWithFieldRule
@@ -24,6 +29,29 @@ from api.serializers import StudentSerializerMethodField
 from api.serializers import EmployeeNestedSerializer
 from api.serializers import EmployeeWritableNestedSerializer
 from api.serializers import EmployeeSerializer
+
+# ===================SERIALIZERS WITH READ & WRITE====================
+from api.serializers import UserSerializer
+
+# ===================SERIALIZERS WITH SOURCE====================
+from api.serializers import EmployeeSerializerWithSource
+
+# ===================SERIALIZERS VS MODELSERIALIZERS====================
+from api.serializers import StudentSerializerNormal # - non model
+from api.serializers import StudentSerializerMS # - model based
+
+# ===================SERIALIZERS WITH READ_ONLY_FIELDS====================
+from api.serializers import StudentSerializerROF
+
+# ===================SERIALIZERS WITH EXTRA_KWARGS====================
+from api.serializers import StudentSerializerKWargs
+
+# ===================SERIALIZERS WITH RELATIONSHIP FIELDS====================
+from api.serializers import EmployeeSerializerRelationshipField
+
+# ===================SERIALIZERS WITH CONTEXT====================
+from api.serializers import StudentSerializerContext
+
 
 import asyncio
 # Create your views here.
@@ -291,16 +319,172 @@ def createdepartment(request):
     return Response(serializer.errors)
 
 # Employee Views
-# Uncomment each nested serializer to know each
+# EmployeeWritableNestedSerializer POST
 @api_view(['POST'])
 def createemployee(request):
-    serializer=EmployeeNestedSerializer(data=request.data)
-    serializer=EmployeeWritableNestedSerializer(data=request.data)
+    serializer=EmployeeWritableNestedSerializer(data=request.data) # create nested object and create employee with that nested object
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Employee Created',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# EmployeeWritableNestedSerializer PUT
+@api_view(['PUT'])
+def putemployee(request,id):
+    dbdata=Employee.objects.get(id=id)
+    serializer=EmployeeWritableNestedSerializer(dbdata,data=request.data) # update Both Emplyee object and Nested object
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Employee Updated',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# EmployeeWritableNestedSerializer PATCH
+@api_view(['PATCH'])
+def patchemployee(request,id):
+    dbdata=Employee.objects.get(id=id)
+    serializer=EmployeeWritableNestedSerializer(dbdata,data=request.data,partial=True) # Patch Both Emplyee object and Nested object
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Employee Patched',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# EmployeeNestedSerializer GET
+@api_view(['GET'])
+def getemployee(request,id):
+    dbdata=Employee.objects.get(id=id)
+    serializer=EmployeeNestedSerializer(dbdata)
+    return Response({
+        'message':'Employee Retrieved',
+        'data':serializer.data
+    })
+
+# PrimaryKeyRelatedField Serializer
+@api_view(['POST'])
+def createemployeeprfs(request):
     serializer=EmployeeSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response({
             'message':'Employee Created',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+@api_view(['PUT'])
+def putemployeeprfs(request,id):
+    dbdata=Employee.objects.get(id=id)
+    serializer=EmployeeSerializer(dbdata,data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Data Updated',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+@api_view(['PATCH'])
+def patchemployeeprfs(request,id):
+    dbdata=Employee.objects.get(id=id)
+    serializer=EmployeeSerializer(dbdata,data=request.data,partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Data Patched',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# Read and Write Concept
+# insert/POST
+@api_view(['POST'])
+def readwriteinsert(request):
+    serializer=UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Data Inserted',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# select/GET
+@api_view(['GET'])
+def readwriteget(request,id):
+    dbdata=User.objects.get(id=id)
+    serializer=UserSerializer(dbdata)
+    return Response({
+        'message':'Data Retrieved',
+        'data':serializer.data
+    })
+
+# PUT and PATCH is same as before
+
+# Source Concept - POST
+@api_view(['POST'])
+def createemployeesource(request):
+    serializer=EmployeeSerializerWithSource(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':'Employee Created',
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# Source Concept - GET
+@api_view(['GET'])
+def getemployeesource(request,id):
+    dbdata=Employee.objects.get(id=id)
+    serializer=EmployeeSerializerWithSource(dbdata)
+    return Response({
+        'message':'Employee Retrieved',
+        'data':serializer.data
+    })
+
+# many = True Concept
+# Get mutiple data many=True (Select all)
+@api_view(['GET'])
+def getallemployee(request):
+    dbdata=Employee.objects.all()
+    serializer=EmployeeSerializer(dbdata,many=True) # Use any serialiser
+    return Response({
+        'message':"Data Retrieved",
+        'data':serializer.data
+    })
+
+# POST mutiple data many=True (Select all)
+@api_view(['POST'])
+def postallemployee(request):
+    serializer=EmployeeSerializer(data=request.data,many=True) # Use any serialiser. input is like this: [{key:value},{key:value},{key:value}]
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':"Data Inserted",
+            'data':serializer.data
+        })
+    return Response(serializer.errors)
+
+# CURD for read_only_fields   - views are same, changes are in each serializers
+# CURD for kwargs             - views are same, changes are in each serializers
+# CURD for Relationship Field - views are same, changes are in each serializers
+
+# CURD for Serializer Context
+@api_view(['POST'])
+def postserializercontext(request):
+    serializer=StudentSerializerContext(context={'request':request},data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message':"Data Inserted",
             'data':serializer.data
         })
     return Response(serializer.errors)

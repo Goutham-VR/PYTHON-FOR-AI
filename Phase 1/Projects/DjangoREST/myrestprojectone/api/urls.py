@@ -39,8 +39,41 @@ urlpatterns=[
     # path('createstudentsmf/',views.createstudentsmf),
     # path('createstudentsmf/',views.createstudentsmf),
 
-    # CURD - Nested Serializer Concept using Department and Employee model
     path('createdepartment/',views.createdepartment),
-    path('createemployee/',views.createemployee),
 
+    # CURD - Nested Serializer Concept using Department and Employee model
+    # 1. EmployeeWritableNestedSerializer for POST / PUT / PATCH.
+    path('createemployee/',views.createemployee),
+    path('putemployee/<int:id>/',views.putemployee),
+    path('patchemployee/<int:id>/',views.patchemployee),
+
+    # 2. EmployeeNestedSerializer for GET / Output
+    path('getemployee/<int:id>/',views.getemployee),
+
+    # 3. PrimaryKeyRelatedField for POST / PUT / PATCH.
+    path('createemployeeprfs/',views.createemployeeprfs),
+    path('putemployeeprfs/<int:id>/',views.putemployeeprfs),
+    path('patchemployeeprfs/<int:id>/',views.patchemployeeprfs),
+
+    # read() and write() Concept
+    path('readwriteinsert/',views.readwriteinsert),
+    path('readwriteget/<int:id>/',views.readwriteget),
+
+    # Source Concept 
+    path('createemployeesource/',views.createemployeesource),
+    path('getemployeesource/<int:id>/',views.getemployeesource),
+
+    # many=True Concept - GET all/ POST all
+    path('getallemployee/',views.getallemployee),
+    path('postallemployee/',views.postallemployee),
+
+    # read_only_fields Concept
+    # extra_kwargs Concept
+    # relationship Concept
+    # serializer context concept
+
+    path('postserializercontext/',views.postserializercontext),
+
+
+ 
 ]

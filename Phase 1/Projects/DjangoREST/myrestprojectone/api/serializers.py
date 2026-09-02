@@ -2,6 +2,13 @@ from rest_framework import serializers
 from api.models import Student
 from api.models import Department
 from api.models import Employee
+from api.models import User
+
+class StudentSerializerBasic(serializers.ModelSerializer): #Create a serializer based on a Django model.
+    class Meta:
+        model=Student                                 #This serializer is connected to the Student model.
+        fields='__all__'                              #Include all fields from the model.
+
 
 class StudentSerializer(serializers.ModelSerializer): #Create a serializer based on a Django model.
     class Meta:
@@ -266,3 +273,367 @@ class EmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = '__all__'
 
+#=============================================================================================
+
+# Write and Read Only Concept - write_only()/read_only
+# write_only() = A field can be sent in POST/PUT/PATCH, but it won't appear in the response. The most common example is a password.
+# read_only() = A field can be returned in GET, but the client doesn't provide it when creating/updating.
+# Eg:
+class UserSerializer(serializers.ModelSerializer):
+    id=serializers.IntegerField(read_only=True) #read()
+    password = serializers.CharField(write_only=True) #write()
+    name=serializers.CharField(max_length=100,required=True) 
+    email=serializers.CharField(max_length=100,required=True)
+    class Meta:
+        model = User
+        fields = '__all__'
+
+#==============================================================================================
+# Source Concept
+# source is used when you want a serializer field to take its value from a different model field or attribute.
+# normally if a model has name field : name=models.CharField(max_length=100)
+# so in serialiser : name=serialisers.CharField(max_length=100)
+# with source we can make it like : employee_name=serializers.CharField(source='name') so in output it will show employee_name instead of name but it will take value from name field of model
+# Eg:
+class EmployeeSerializerWithSource(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source='name')
+    # We can also use other parameters like:
+    # employee_name = serializers.CharField(source='name',max_length=50,required=True,allow_blank=False)
+    class Meta:
+        model = Employee
+        fields = 'id', 'employee_name', 'salary','department'
+        # fields = '__all__' # Means includes all model fields, but it does not automatically include manually declared serializer-only fields such as employee_name
+
+# ===============================================================================================
+# Serializer vs ModelSerializer
+# There are two main ways to create a serializer.
+# class StudentSerializer(serializers.Serializer): based on non model and doesnot need Meta ppty
+# class StudentSerializer(serializers.ModelSerializer): based on our Model
+
+class StudentSerializerNormal(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    age = serializers.IntegerField()
+    course = serializers.CharField(max_length=50)
+    # Here, you manually define every field.
+
+class StudentSerializerMS(serializers.ModelSerializer):
+    # all field rule also define here
+    class Meta:
+        model = Student
+        fields = '__all__'
+
+# ==================================================================================================
+# many=True — how one serializer handles a list of objects. Select All concept
+# usecase in views for get and post - get multiple objects and post multiple objects at a time
+# serializer = StudentSerializer(dbdata,many=True) get one objects we already know
+# serializer = StudentSerializer(dbdata,many=True) get mutiple objects
+# serializer = StudentSerializer(data=request.data,many=True) post mutiple objects
+
+
+# ====================================================================================================
+# read_only_fields Concept
+# instead of id = serializers.IntegerField(read_only=True) u can write:
+class StudentSerializerROF(serializers.ModelSerializer):
+    # add rule if needed
+    class Meta:
+        model = Student
+        fields = '__all__'
+        read_only_fields = ['id']
+        # it's convenient when you have several read-only fields.
+        # read_only_fields = ['id','created_at','updated_at']
+
+# ======================================================================================================
+# extra_kwargs lets you customize automatically generated fields without declaring those fields again.
+# ModelSerializer
+#       ↓
+# DRF automatically creates fields
+#       ↓
+# extra_kwargs
+#       ↓
+# "Change some options on those generated fields"
+class StudentSerializerKWargs(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = '__all__'
+        extra_kwargs = {
+            'name': {
+                'required': True,
+                'max_length': 100
+            },
+            'course': {
+                'required': False
+            }
+        }
+
+# ========================================================================================================
+# Relationship Fields
+# ========================================================================================================
+class EmployeeSerializerRelationshipField(serializers.ModelSerializer):
+
+    # 1. PrimaryKeyRelatedField
+    # Used when the related object already exists in the database.
+    # Send the related object's ID.
+    # Useful for POST / PUT / PATCH.
+    #
+    # Example input:
+    # {
+    #     "name": "Goutham",
+    #     "salary": 30000,
+    #     "department": 1
+    # }
+    #
+    # department = serializers.PrimaryKeyRelatedField(
+    #     queryset=Department.objects.all()
+    # )
+
+
+    # 2. StringRelatedField
+    # Read-only relationship field.
+    # Mainly useful for GET / Output.
+    # Displays the related object's __str__() value.
+    #
+    # Example output:
+    # "department": "Computer"
+    #
+    # department = serializers.StringRelatedField()
+
+
+    # 3. SlugRelatedField
+    # Uses a specific field from the related model
+    # instead of using the primary key (ID).
+    #
+    # Here, 'name' is used to identify the Department.
+    #
+    # Useful for both output and input.
+    # For POST / PUT / PATCH, send the value of the selected field.
+    #
+    # Example input:
+    # {
+    #     "name": "Goutham",
+    #     "salary": 30000,
+    #     "department": "Computer"
+    # }
+    #
+    # department = serializers.SlugRelatedField(
+    #     queryset=Department.objects.all(),
+    #     slug_field='name'
+    # )
+
+    class Meta:
+        model = Employee
+        fields = '__all__'
+
+# ===================================================================================
+# Serializer context
+#====================================================================================
+# Normally:
+# serializer = StudentSerializer(student)
+# The serializer knows about:student
+
+# But sometimes you want to give the serializer additional information.
+# For example:
+# Current logged-in user
+# Request object
+# Some extra value from the view
+
+# You can pass it through context.
+# serializer = StudentSerializer(student,context={'request': request})
+# self.context inside serializers
+class StudentSerializerContext(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        req=self.context.get('request')
+        req=self.context['request'] # This is also works but there s no 'request' it raise keyerror
+        print(req.user)
+        print(req.method)
+        return data
+
+# =================================================================================================
+# Validation Order
+# =================================================================================================
+# request.data
+#      ↓
+# Field validation
+#      ↓
+# validate_age()
+#      ↓
+# validate()
+#      ↓
+# serializer.is_valid() ✅ 
+#      ↓
+# serializer.save()
+#      ↓
+# create()
+#      ↓
+# Database
+
+# ===================================================================================================
+# serializer.save() vs serializer.data vs validated_data
+# ===================================================================================================
+# request.data
+#       ↓
+# What FRONTEND sends
+
+
+# validated_data
+#       ↓
+# What passed VALIDATION
+
+
+# serializer.save()
+#       ↓
+# SAVE to DATABASE
+
+
+# serializer.data
+#       ↓
+# What BACKEND sends back
+
+# ===================================================================================================
+# Serializer Inheritance
+# ===================================================================================================
+
+# Base Serializer
+class StudentBasicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['id', 'name', 'age']
+
+    def validate_age(self, value):
+        if value < 18:
+            raise serializers.ValidationError(
+                "Age must be 18 or above."
+            )
+        return value
+
+# Child Serializer
+class StudentDetailSerializer(StudentBasicSerializer):
+    class Meta(StudentBasicSerializer.Meta):
+        fields = [
+            'id',
+            'name',
+            'age',
+            'course'
+        ]
+# child get parent featues
+# Base Serializer
+# ├── fields
+# ├── validation
+# ├── methods
+# └── other logic
+#        ↓
+# Child Serializer
+#        ↓
+# Can reuse + customize
+
+# ==========================================================================END========================================================================================
+# Case 1 — Normal model CRUD
+
+# Use ModelSerializer:
+
+# class StudentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Student
+#         fields = '__all__'
+
+# Use this when you simply want:
+# POST → create
+# GET → retrieve
+# PUT/PATCH → update
+# ================================================================================================
+# Case 2 — Need calculated output
+
+# Use SerializerMethodField:
+
+# student_status = serializers.SerializerMethodField()
+
+# Example:
+
+# {
+#     "name": "Goutham",
+#     "age": 20,
+#     "student_status": "Adult"
+# }
+# ================================================================================================
+# Case 3 — Existing ForeignKey object
+
+# Use PrimaryKeyRelatedField:
+
+# department = serializers.PrimaryKeyRelatedField(
+#     queryset=Department.objects.all()
+# )
+
+# Input:
+
+# {
+#     "name": "Goutham",
+#     "department": 1
+# }
+# ================================================================================================
+# Case 4 — Show related object details
+
+# Use nested serializer:
+
+# department = DepartmentSerializer(read_only=True)
+
+# Output:
+
+# {
+#     "name": "Goutham",
+#     "department": {
+#         "id": 1,
+#         "name": "Computer"
+#     }
+# }
+# ================================================================================================
+# Case 5 — Custom nested POST/PUT/PATCH
+
+# Use writable nested serializer:
+
+# department = DepartmentSerializer()
+
+# Then write custom:
+
+# create()
+# update()
+
+# when your nested behavior requires it.
+# ================================================================================================
+# Case 6 — Rename a field
+
+# Use source:
+
+# employee_name = serializers.CharField(
+#     source='name'
+# )
+
+# Output:
+
+# {
+#     "employee_name": "Goutham"
+# }
+
+# ================================================================================================
+# What do I need?
+#        │
+#        ├── Normal Model CRUD
+#        │      → ModelSerializer
+#        │
+#        ├── Calculated field
+#        │      → SerializerMethodField
+#        │
+#        ├── Existing related object + ID
+#        │      → PrimaryKeyRelatedField
+#        │
+#        ├── Related object details
+#        │      → Nested Serializer
+#        │
+#        ├── Nested create/update
+#        │      → Writable Nested + custom methods
+#        │
+#        └── Rename/access another field
+#               → source

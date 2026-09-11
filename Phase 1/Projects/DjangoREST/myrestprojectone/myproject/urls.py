@@ -21,4 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('apiview/', include('apiview.urls')),
+    path('PaginationApiView/', include('PaginationApiView.urls')),
+    path('FilteringAPIView/', include('FilteringAPIView.urls')),
 ]

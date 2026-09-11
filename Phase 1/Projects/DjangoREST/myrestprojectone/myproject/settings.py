@@ -37,9 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'api',
-    'apiview',
+    'rest_framework', # Added for REST framework
+    'api', # app for function-base api Concept
+    'apiview', # app for class-base api Normal/Generic/Concrete Concept
+    'PaginationApiView', # app for how to create pagination.py and works with APIView 
+    'FilteringAPIView', # app for how Search and Filtering Method works
+    'django_filters', # added for using django filter 
 ]
 
 MIDDLEWARE = [
@@ -123,3 +126,48 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#========================================================================
+# DRF Pagination Types
+#========================================================================
+
+# 1. Page Number Pagination 
+#     This is the easiest and most common for beginners.
+
+# uncomment below section for test
+# REST_FRAMEWORK = {
+#     'DEFAULT_PAGINATION_CLASS':
+#         'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 10,
+# }
+
+# 2. Limit-Offset Pagination
+#     Here the client specifies:
+
+#     limit → how many records
+#     offset → where to start
+
+# uncomment below section for test
+# REST_FRAMEWORK = {
+#     'DEFAULT_PAGINATION_CLASS':
+#         'rest_framework.pagination.LimitOffsetPagination',
+#     'PAGE_SIZE': 10,
+    
+# }
+
+# 3. Cursor Pagination
+    # Cursor pagination uses a cursor/token rather than page numbers.
+    # The client normally doesn't need to understand what the cursor contains.
+    # Good for: very large datasets, feeds, timelines, continuously changing data.
+
+# 4. Custom Pagination
+    # it is more customizable type
+
+#====================================================================================
+# Django Filter : added for using django filter 
+#====================================================================================
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+}

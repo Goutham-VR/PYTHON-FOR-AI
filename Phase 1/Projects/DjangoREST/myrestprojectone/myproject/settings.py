@@ -41,8 +41,11 @@ INSTALLED_APPS = [
     'api', # app for function-base api Concept
     'apiview', # app for class-base api Normal/Generic/Concrete Concept
     'PaginationApiView', # app for how to create pagination.py and works with APIView 
+    'django_filters', # added for using django filter
     'FilteringAPIView', # app for how Search and Filtering Method works
-    'django_filters', # added for using django filter 
+    'SearchAPIView', # app for Learn search/search filter
+    'AuthApp', # app for Authentication and Authorization
+
 ]
 
 MIDDLEWARE = [

@@ -23,4 +23,7 @@ urlpatterns = [
     path('apiview/', include('apiview.urls')),
     path('PaginationApiView/', include('PaginationApiView.urls')),
     path('FilteringAPIView/', include('FilteringAPIView.urls')),
+    path('SearchAPIView/', include('SearchAPIView.urls')),
+    path('AuthApp/', include('AuthApp.urls')),
+    
 ]

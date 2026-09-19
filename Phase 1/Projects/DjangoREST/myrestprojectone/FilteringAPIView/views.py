@@ -40,8 +40,8 @@ class ProductListViewKWARGS(ListAPIView):
 from django_filters.rest_framework import DjangoFilterBackend
 from FilteringAPIView.filters import ProductFilter
 
-class ProductListView(ListAPIView):
+class ProductListViewDjangoFilter(ListAPIView):
     queryset = Product.objects.all() 
-    serializer_class = ProductSerializer 
+    serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend] # New Concept for Filter
-    filterset_class = ProductFilter # New concept for Filter
+    filterset_class = ProductFilter # New concept for calling filter from filters.py

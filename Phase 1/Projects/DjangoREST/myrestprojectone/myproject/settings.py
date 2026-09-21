@@ -37,15 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework', # Added for REST framework
+    'rest_framework', # Added for REST framework 
     'api', # app for function-base api Concept
-    'apiview', # app for class-base api Normal/Generic/Concrete Concept
-    'PaginationApiView', # app for how to create pagination.py and works with APIView 
+    'apiview', # app for class-base api Normal/Generic/Concrete API View Concept
+    'PaginationApiView', # app for pagination Concept 
     'django_filters', # added for using django filter
     'FilteringAPIView', # app for how Search and Filtering Method works
     'SearchAPIView', # app for Learn search/search filter
     'AuthApp', # app for Authentication and Authorization
-
+    'rest_framework.authtoken' # added for work Token Authentication
 ]
 
 MIDDLEWARE = [

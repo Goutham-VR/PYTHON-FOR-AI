@@ -1,0 +1,40 @@
+Throttling
+Throttling controls how many API requests a user/client can make within a certain time.
+Simple analogy
+Imagine a restaurant:
+One customer cannot keep entering the restaurant 1,000 times per minute.
+
+Similarly:
+Client
+   ↓
+Request
+   ↓
+Throttling
+   ↓
+"Has this client exceeded the limit?"
+   ↓
+YES → 429 Too Many Requests
+NO  → API continues
+
+Example
+Suppose we allow:
+100 requests / day
+
+A client makes:
+Request 1   → ✅
+Request 2   → ✅
+...
+Request 100 → ✅
+Request 101 → ❌ 429 Too Many Requests
+
+We'll learn throttling in this order:
+1. What is throttling?
+2. Why throttling is needed
+3. DRF built-in throttling classes
+4. AnonRateThrottle
+5. UserRateThrottle
+6. ScopedRateThrottle
+7. Configure throttle rates in settings.py
+8. Apply throttling to a view
+9. Test it with Postman
+10. Custom throttling

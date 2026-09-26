@@ -22,6 +22,12 @@ class ProductListViewKWARGS(ListAPIView):
         category = self.kwargs.get('category')
         return Product.objects.filter(category=category)
 
+# 3. Use if You already have the user from authentication like session/basic/token/jwt: request.user = logged in user
+class MyProductListView(ListAPIView):
+    serializer_class = ProductSerializer
+    def get_queryset(self):
+        return Product.objects.filter(owner=self.request.user)
+
 #==========================================================================================================================
 # DJANGO-FILTER - Proper DRF Filtering
 #==========================================================================================================================

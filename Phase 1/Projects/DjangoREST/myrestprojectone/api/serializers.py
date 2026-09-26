@@ -38,7 +38,6 @@ class StudentSerializer(serializers.ModelSerializer): #Create a serializer based
             raise serializers.ValidationError("BCA student must be 18 or above.")
         return value
 
-
 # required
 # allow_blank
 # allow_null

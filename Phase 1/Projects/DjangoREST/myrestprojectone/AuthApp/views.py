@@ -159,6 +159,32 @@ class EmployeeListViewTA(ListAPIView):
 # → This is useful when the client isn't relying on Django's browser session.likeReact frontend, Mobile application, Postman, External API client
 
 #==========================================================================Authentication End============================================================================================
+# Session Authentication
+# Browser automatically handles the sessionid cookie.
+# In Postman/API tools, we have to add the sessionid manually in Cookies option.
+# Example: Domain=127.0.0.1, Name=sessionid, Value=YOUR_SESSION_ID
+
+
+# Basic Authentication
+# Uses username and password.
+# Browser may show a popup to enter username and password.
+# In Postman: Authorization -> Basic Auth -> enter username and password.
+
+
+# Token Authentication
+# Uses a token in the Authorization header option.
+# Example: Authorization: Token YOUR_TOKEN
+# For testing, token can be created using:
+# python manage.py drf_create_token admin
+# This command is mainly for creating a token manually; we don't run it every time.
+
+
+# JWT Authentication not needed here just for understanding
+# Commonly used for token-based authentication in production applications.
+# Login API verifies username and password and returns JWT tokens.
+# Example: Authorization: Bearer YOUR_ACCESS_TOKEN
+# JWT is different from DRF's built-in TokenAuthentication.
+
 
 #====================================================================================================================================
 # Permission - Built-in
@@ -172,9 +198,12 @@ class EmployeeListViewTA(ListAPIView):
 # IsAuthenticated : Authentication required? Yes, Permission check? Only authenticated users allowed
 # IsAdminUser : Authentication required? Yes, Permission check? Only staff/admin users allowed
 # IsAuthenticatedOrReadOnly : Authentication required? 
-#   GET/HEAD/OPTIONS → No
-#   POST/PUT/PATCH/DELETE → Yes
-#   Permission check? Everyone can read, only authenticated users can modify
+# GET / HEAD / OPTIONS → Permission allows everyone
+# POST / PUT / PATCH / DELETE → User must be authenticated
+
+# Result:
+    # → Everyone can read
+    # → Only authenticated users can modify
 
 from rest_framework.authentication import BasicAuthentication # for authentication
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
@@ -183,10 +212,12 @@ class EmployeeListViewApiPermissionSA(ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     authentication_classes = [BasicAuthentication]
-    permission_classes = [AllowAny] 
+    permission_classes = [AllowAny]
     # permission_classes = [IsAuthenticated]
     # permission_classes = [IsAdminUser]
     # permission_classes = [IsAuthenticatedOrReadOnly]
+
+
 
 #.....
 
@@ -219,5 +250,79 @@ class EmployeeListViewApiPermissionSA(ListAPIView):
 # Now simply using ListAPIView isn't enough because you actually want POST/PUT/DELETE to exist, but only certain users should be allowed to perform them.'
 # 'That's where custom permission comes in.
 
-Step 1 — Create permissions.py
-Step 2 — Create a custom permission
+# Step 1 — Create permissions.py
+# Step 2 — Create a custom permission and create custom permission class
+# step 3 - Complete View
+
+from rest_framework.generics import ListCreateAPIView # imported for concrete generic api view
+from SearchAPIView.models import Course # imported from SearchAPIView app models.py file 
+from AuthApp.serializers import CourseSerializer # imported from serializers.py file
+from AuthApp.permissions import IsAuthenticatedUser # imported from permissions.py file
+
+#==================================CourseListView with Custom permission using has_permission method=====================================================
+# Only Auth user can access this
+class CourseListView(ListCreateAPIView):
+    queryset = Course.objects.all() # Queryset
+    serializer_class = CourseSerializer # Serializer
+    # We can specify authentication_classes here.
+    # If we don't specify them, DRF uses the configured default authentication classes from settings.py.
+    permission_classes = [IsAuthenticatedUser] # Permission class
+
+from AuthApp.permissions import MyCustomPermissionTwo # imported from permissions.py file
+
+# Auth user can create(POST) and get(LIST) and others can only get(LIST)
+class CourseListViewTwo(ListCreateAPIView):
+    queryset=Course.objects.all()
+    serializer_class=CourseSerializer
+    permission_classes=[MyCustomPermissionTwo]
+
+# here auth_user table is checked 
+# if we want custom user table create model with abstractuser or abstractbaseuser in models.py
+
+#==================================Notes CreateView with Custom permission using has_permission method======================================================
+
+# | Operation      | Example            |  has_object_permission()  |
+# | -------------- | ------------------ | ------------------------- |
+# | GET one object | `GET /notes/5/`    | Yes                       |
+# | PUT            | `PUT /notes/5/`    | Yes                       |
+# | PATCH          | `PATCH /notes/5/`  | Yes                       |
+# | DELETE         | `DELETE /notes/5/` | Yes                       |
+# | GET list       | `GET /notes/`      | Normally no               |
+# | POST/create    | `POST /notes/`     | Normally no               |
+
+# create a Createview to insert data in Notes Table by user
+from rest_framework.generics import CreateAPIView,RetrieveUpdateDestroyAPIView
+from AuthApp.serializers import NoteSerializer
+from AuthApp.models import Note
+from AuthApp.permissions import NoteCreateCustomPermission
+
+class NotesCreateView(CreateAPIView):
+    queryset = Note.objects.all()
+    serializer_class = NoteSerializer
+    permission_classes = [NoteCreateCustomPermission]
+    # here we need to pass user/owner as fk so create a perform_create to override
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+# has_object_permission apiview (GET one/PUT/PATCH/DELETE/)
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import UpdateAPIView
+from AuthApp.permissions import NoteManageCustomPermission
+
+class NotesGetOneAPIView(RetrieveAPIView):
+    queryset = Note.objects.all()
+    serializer_class = NoteSerializer
+    permission_classes = [NoteManageCustomPermission]
+
+class NotesGetAllAPIView(ListAPIView):
+    def get_queryset(self):
+        return Note.objects.filter(owner=self.request.user)
+    serializer_class = NoteSerializer
+    permission_classes = [NoteManageCustomPermission]
+
+class NotesUpdateAPIView(UpdateAPIView):
+    def get_queryset(self):
+        return Note.objects.filter(owner=self.request.user)
+    serializer_class = NoteSerializer
+    permission_classes = [NoteManageCustomPermission]
+    

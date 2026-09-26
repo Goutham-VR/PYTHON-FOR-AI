@@ -45,8 +45,9 @@ INSTALLED_APPS = [
     'FilteringAPIView', # app for how Search and Filtering Method works
     'SearchAPIView', # app for Learn search/search filter
     'AuthApp', # app for Authentication and Authorization
-    'rest_framework.authtoken' # added for work Token Authentication
-]
+    'rest_framework.authtoken', # added for work Token Authentication
+    'ThrottlingApp', # app for Learn Throttling Concept
+]   
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -173,4 +174,13 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
+}
+
+#====================================================================================
+# Throttling : added for using Throttle
+#====================================================================================
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute', # 5 req/min
+    }
 }

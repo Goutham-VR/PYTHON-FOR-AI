@@ -175,7 +175,7 @@ def screate(request):
     return Response(serializer.errors)
 
 # serializer PUT and PATCH
-# PUT — complete update = edit ful
+# PUT — complete update = edit full
 @api_view(['PUT'])
 def supdatestudent(request,id):
     dbdata=Student.objects.get(id=id)

@@ -331,3 +331,13 @@ class DeleteProduct(DestroyAPIView):
     def perform_destroy(self, instance):
         print("Deleting:", instance.name)
         instance.delete()
+
+
+# | HTTP         | Generic View      | Main method  | Customization hook  |
+# | ------------ | ----------------- | ------------ | ------------------- |
+# | **POST**     | `CreateAPIView`   | `create()`   | `perform_create()`  |
+# | **GET list** | `ListAPIView`     | `list()`     | `get_queryset()`    |
+# | **GET one**  | `RetrieveAPIView` | `retrieve()` | `get_object()`      |
+# | **PUT**      | `UpdateAPIView`   | `update()`   | `perform_update()`  |
+# | **PATCH**    | `UpdateAPIView`   | `update()`   | `perform_update()`  |
+# | **DELETE**   | `DestroyAPIView`  | `destroy()`  | `perform_destroy()` |

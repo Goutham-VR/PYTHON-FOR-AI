@@ -25,5 +25,6 @@ urlpatterns = [
     path('FilteringAPIView/', include('FilteringAPIView.urls')),
     path('SearchAPIView/', include('SearchAPIView.urls')),
     path('AuthApp/', include('AuthApp.urls')),
+    path('ThrottlingApp/', include('ThrottlingApp.urls')),
     
 ]
